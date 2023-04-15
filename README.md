@@ -15,4 +15,5 @@ This script was created to work in a docker container so the included files are 
 to use in a docker container, copy folder to the machine hosting your docker, `CD` into the directory where the files are located and enter these following 2 commands:
 
 1# `docker build -t media-cleaner .`
+
 2#. `docker run -d --name media-cleaner media-cleaner`
