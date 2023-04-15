@@ -1,6 +1,6 @@
 # sonarr-radarr-queue-cleaner
 A simple Sonarr and Radarr script to clean out stalled downloads.
-Coulnd't find a python script to do this job so I figured why not give it a try.
+Couldn't find a python script to do this job so I figured why not give it a try.
 
 Details:
 
