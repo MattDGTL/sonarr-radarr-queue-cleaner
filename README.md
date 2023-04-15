@@ -4,7 +4,7 @@ Couldn't find a python script to do this job so I figured why not give it a try.
 
 Details:
 
-This script checks every 10 minutes Sonarr's and Radarr's queue json information for downloads that has a `status` of `Warning` and or `errorMessage` that states `The download is stalled with no connections` for each item in the queue and removes it, informs download client to delete files and sends the release to blocklist to prevent it from redownloading.
+This script checks every 10 minutes Sonarr's and Radarr's queue json information for downloads that has a `status` of `Warning` and or `errorMessage` that states `The download is stalled with no connections` for each item in the queue and removes it, informs download client to delete files and sends the release to blocklist to prevent it from re-downloading.
 
 You can how often it checks via `API_TIMEOUT=`. It's currently set to 600 seconds (10 minutes). You probably should change this to check every hour or more.
 
