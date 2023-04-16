@@ -15,8 +15,8 @@ logging.basicConfig(
 )
 
 # Sonarr and Radarr API endpoints
-SONARR_API_URL = "process.env.SONARR_URL/api/v3"
-RADARR_API_URL = "process.env.RADARR_URL/api/v3"
+SONARR_API_URL = "process.env.SONARR_URL"
+RADARR_API_URL = "process.env.RADARR_URL"
 
 # API key for Sonarr and Radarr
 SONARR_API_KEY = "process.env.SONARR_API_KEY"
