@@ -1,6 +1,7 @@
 # Simple Sonarr and Radarr script created by Matt (MattDGTL) Pomales to clean out stalled downloads.
 # Coulnd't find a python script to do this job so I figured why not give it a try.
 
+import os
 import asyncio
 import logging
 import requests
