@@ -15,15 +15,15 @@ logging.basicConfig(
 )
 
 # Sonarr and Radarr API endpoints
-SONARR_API_URL = 'http://localhost:8989/api/v3'
-RADARR_API_URL = 'http://localhost:7878/api/v3'
+SONARR_API_URL = "process.env.SONARR_URL/api/v3"
+RADARR_API_URL = "process.env.RADARR_URL/api/v3"
 
 # API key for Sonarr and Radarr
-SONARR_API_KEY = '<SONARR_APY_KEY_HERE>'
-RADARR_API_KEY = '<RADARR_APY_KEY_HERE>'
+SONARR_API_KEY = "process.env.SONARR_API_KEY"
+RADARR_API_KEY = "process.env.RADARR_API_KEY"
 
 # Timeout for API requests in seconds
-API_TIMEOUT = 600 # 10 minutes
+API_TIMEOUT = "process.env.API_TIMEOUT" # 10 minutes
 
 # Function to make API requests with error handling
 async def make_api_request(url, api_key, params=None):
