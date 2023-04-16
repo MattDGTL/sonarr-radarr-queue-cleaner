@@ -24,7 +24,7 @@ SONARR_API_KEY = (os.environ['SONARR_API_KEY'])
 RADARR_API_KEY = (os.environ['RADARR_API_KEY'])
 
 # Timeout for API requests in seconds
-API_TIMEOUT = (os.environ['API_TIMEOUT']) # 10 minutes
+API_TIMEOUT = (os.environ['TIMEOUT']) # 10 minutes
 
 # Function to make API requests with error handling
 async def make_api_request(url, api_key, params=None):
@@ -103,7 +103,7 @@ async def main():
         logging.info('Running media-tools script')
         await remove_stalled_sonarr_downloads()
         await remove_stalled_radarr_downloads()
-        logging.info('Finished running media-tools script. Sleeping for (API_TIMEOUT) seconds.')
+        logging.info('Finished running media-tools script. Sleeping for 10 minutes.')
         await asyncio.sleep(API_TIMEOUT)
 
 if __name__ == '__main__':
