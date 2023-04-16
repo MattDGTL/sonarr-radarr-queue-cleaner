@@ -16,8 +16,8 @@ logging.basicConfig(
 )
 
 # Sonarr and Radarr API endpoints
-SONARR_API_URL = (os.environ['SONARR_URL']) + "/api/v3/queue"
-RADARR_API_URL = (os.environ['RADARR_URL']) + "/api/v3/queue"
+SONARR_API_URL = (os.environ['SONARR_URL']) + "/api/v3"
+RADARR_API_URL = (os.environ['RADARR_URL']) + "/api/v3"
 
 # API key for Sonarr and Radarr
 SONARR_API_KEY = (os.environ['SONARR_API_KEY'])
