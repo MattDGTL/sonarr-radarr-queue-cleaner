@@ -24,7 +24,7 @@ SONARR_API_KEY = (os.environ['SONARR_API_KEY'])
 RADARR_API_KEY = (os.environ['RADARR_API_KEY'])
 
 # Timeout for API requests in seconds
-API_TIMEOUT = os.environ["API_TIMEOUT"] # 10 minutes
+API_TIMEOUT = print(os.environ['API_TIMEOUT']) # 10 minutes
 
 # Function to make API requests with error handling
 async def make_api_request(url, api_key, params=None):
