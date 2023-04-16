@@ -15,15 +15,15 @@ logging.basicConfig(
 )
 
 # Sonarr and Radarr API endpoints
-SONARR_API_URL = process.env.SONARR_URL
-RADARR_API_URL = process.env.RADARR_URL
+SONARR_API_URL = (os.environ['SONARR_URL'])
+RADARR_API_URL = (os.environ['RADARR_URL'])
 
 # API key for Sonarr and Radarr
-SONARR_API_KEY = process.env.SONARR_API_KEY
-RADARR_API_KEY = process.env.RADARR_API_KEY
+SONARR_API_KEY = (os.environ['SONARR_API_KEY'])
+RADARR_API_KEY = (os.environ['RADARR_API_KEY'])
 
 # Timeout for API requests in seconds
-API_TIMEOUT = process.env.API_TIMEOUT # 10 minutes
+API_TIMEOUT = (os.environ['API_TIMEOUT']) # 10 minutes
 
 # Function to make API requests with error handling
 async def make_api_request(url, api_key, params=None):
