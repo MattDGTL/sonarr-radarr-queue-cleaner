@@ -18,4 +18,4 @@ to use in a docker container, copy folder to the machine hosting your docker, `C
 
 2#. `docker run -d --name -e SONARR_API_KEY='123456' -e RADARR_API_KEY='123456' -e SONARR_URL='http://sonarr:8989' -e RADARR_URL='http://radarr:7878' -e API_TIMEOUT='600' media-cleaner media-cleaner`
 
-Or simply run: `docker run -d --name -e SONARR_API_KEY='123456' -e RADARR_API_KEY='123456' -e SONARR_URL='http://sonarr:8989' -e RADARR_URL='http://radarr:7878' -e API_TIMEOUT='600' kjames2001/media-cleaner:latest`
+Or simply pull built docker image if you dont want to build it yourself: `docker run -d --name -e SONARR_API_KEY='123456' -e RADARR_API_KEY='123456' -e SONARR_URL='http://sonarr:8989' -e RADARR_URL='http://radarr:7878' -e API_TIMEOUT='600' kjames2001/media-cleaner:latest`
