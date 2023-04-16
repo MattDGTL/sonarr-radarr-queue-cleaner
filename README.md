@@ -16,4 +16,4 @@ to use in a docker container, copy folder to the machine hosting your docker, `C
 
 1# `docker build -t media-cleaner .`
 
-2#. `docker run -d --name --SONARR_API_KEY='123456' --RADARR_API_KEY='123456' --SONARR_URL='http://sonarr:8989/api/v3' --RADARR_URL='http://radarr:7878/api/v3' --API_TIMEOUT='3600' media-cleaner media-cleaner`
+2#. `docker run -d --name -e SONARR_API_KEY='123456' -e RADARR_API_KEY='123456' -e SONARR_URL='http://sonarr:8989/api/v3' -e RADARR_URL='http://radarr:7878/api/v3' -e API_TIMEOUT='3600' media-cleaner media-cleaner`
