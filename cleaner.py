@@ -66,7 +66,7 @@ async def remove_stalled_sonarr_downloads():
                 logging.info(f'Checking the status of {item["title"]}')
                 if item['status'] == 'warning' and item['errorMessage'] == 'The download is stalled with no connections':
                     logging.info(f'Removing stalled Sonarr download: {item["title"]}')
-                    await make_api_delete(f'{SONARR_API_URL}/queue/{item["id"]}', {'removeFromClient': 'true', 'blocklist': 'true'}, SONARR_API_KEY)
+                    await make_api_delete(f'{SONARR_API_URL}/queue/{item["id"]}', SONARR_API_KEY, {'removeFromClient': 'true', 'blocklist': 'true'})
             else:
                 logging.warning('Skipping item in Sonarr queue due to missing or invalid keys')
     else:
@@ -84,7 +84,7 @@ async def remove_stalled_radarr_downloads():
                 logging.info(f'Checking the status of {item["title"]}')
                 if item['status'] == 'warning' and item['errorMessage'] == 'The download is stalled with no connections':
                     logging.info(f'Removing stalled Radarr download: {item["title"]}')
-                    await make_api_delete(f'{RADARR_API_URL}/queue/{item["id"]}', {'removeFromClient': 'true', 'blocklist': 'true'}, RADARR_API_URL)
+                    await make_api_delete(f'{RADARR_API_URL}/queue/{item["id"]}', RADARR_API_KEY, {'removeFromClient': 'true', 'blocklist': 'true'})
             else:
                 logging.warning('Skipping item in Radarr queue due to missing or invalid keys')
     else:
