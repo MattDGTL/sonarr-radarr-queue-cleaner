@@ -59,27 +59,33 @@ async def remove_stalled_downloads(appName, apiURL, apiKey):
     logging.info(f'Checking {appName} queue...')
     url = f'{apiURL}/queue'
     queue = await make_api_request(url, apiKey, {'page': '1', 'pageSize': await count_records(apiURL, apiKey)})
+    removedDownloads = []
     if queue is not None and 'records' in queue:
         logging.info(f'Processing {appName} queue...')
         for item in queue['records']:
             logging.debug(f'Processing {appName} queue item: {item["title"] if "title" in item else "Unknown"}')
-            if shouldCleanItem(item):
-                logging.info(f'Removing stalled/slow {appName} download: {item["title"] if "title" in item else "Unknown"}')
+            if item['downloadId'] in removedDownloads:
+                logging.debug(f'Skipping {appName} queue item: {item["title"] if "title" in item else "Unknown"} because it was already removed')
+            elif shouldCleanItem(item, appName):
+                removedDownloads.append(item['downloadId'])
                 await make_api_delete(f'{apiURL}/queue/{item["id"]}', apiKey, {'removeFromClient': 'true', 'blocklist': 'true'})
     else:
         logging.warning(f'{appName} queue is None or missing "records" key')
 
-def shouldCleanItem(item):
+def shouldCleanItem(item, appName):
     # If the download is stalled with no connections
     if 'errorMessage' in item and item['errorMessage'] == 'The download is stalled with no connections':
-        if('status' in item):
-            return item['status'] == 'warning'
-        return item['trackedDownloadStatus'] == 'warning'
+        if 'status' in item and item['status'] == 'warning' or item['trackedDownloadStatus'] == 'warning':
+            logging.info(f'Removing stalled {appName} download: {item["title"] if "title" in item else "Unknown"}')
+            return True
+        
     # If the timeleft is greater than 1 day
     if 'trackedDownloadState' in item and item['trackedDownloadState'] == 'downloading' and 'timeleft' in item:
         timings = item['timeleft'].replace('.', ':').split(':')
         if len(timings) > 3:
+            logging.info(f'Removing slow {appName} download: {item["title"] if "title" in item else "Unknown"}')
             return True
+        
     return False
 
 # Make a request to view and count items in queue and return the number.
