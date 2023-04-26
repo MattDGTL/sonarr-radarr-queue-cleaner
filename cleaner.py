@@ -8,13 +8,6 @@ import validators
 import requests
 from requests.exceptions import RequestException
 
-# Set up logging
-logging.basicConfig(
-    format='%(asctime)s [%(levelname)s]: %(message)s', 
-    level=logging.INFO, 
-    handlers=[logging.StreamHandler()]
-)
-
 SONARR_API_URL = (os.environ['SONARR_URL']) + "/api/v3"
 RADARR_API_URL = (os.environ['RADARR_URL']) + "/api/v3"
 LIDARR_API_URL = (os.environ['LIDARR_URL']) + "/api/v1"
@@ -25,6 +18,15 @@ LIDARR_API_KEY = (os.environ['LIDARR_API_KEY'])
 
 # Timeout for API requests in seconds
 API_TIMEOUT = int(os.environ['API_TIMEOUT'])
+
+LOG_LEVEL = os.environ['LOG_LEVEL']
+
+# Set up logging
+logging.basicConfig(
+    format='%(asctime)s [%(levelname)s]: %(message)s', 
+    level=logging[LOG_LEVEL.upper()], 
+    handlers=[logging.StreamHandler()]
+)
 
 # Function to make API requests with error handling
 async def make_api_request(url, api_key, params=None):
