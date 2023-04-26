@@ -60,7 +60,7 @@ async def make_api_delete(url, api_key, params=None):
 async def remove_stalled_sonarr_downloads():
     logging.info('Checking Sonarr queue...')
     sonarr_url = f'{SONARR_API_URL}/queue'
-    sonarr_queue = await make_api_request(sonarr_url, SONARR_API_KEY, {'page': '1', 'pageSize': count_records(SONARR_API_URL,SONARR_API_KEY)})
+    sonarr_queue = await make_api_request(sonarr_url, SONARR_API_KEY, {'page': '1', 'pageSize': await count_records(SONARR_API_URL,SONARR_API_KEY)})
     if sonarr_queue is not None and 'records' in sonarr_queue:
         logging.info('Processing Sonarr queue...')
         for item in sonarr_queue['records']:
@@ -78,7 +78,7 @@ async def remove_stalled_sonarr_downloads():
 async def remove_stalled_radarr_downloads():
     logging.info('Checking radarr queue...')
     radarr_url = f'{RADARR_API_URL}/queue'
-    radarr_queue = await make_api_request(radarr_url, RADARR_API_KEY, {'page': '1', 'pageSize': count_records(RADARR_API_URL,RADARR_API_KEY)})
+    radarr_queue = await make_api_request(radarr_url, RADARR_API_KEY, {'page': '1', 'pageSize': await count_records(RADARR_API_URL,RADARR_API_KEY)})
     if radarr_queue is not None and 'records' in radarr_queue:
         logging.info('Processing Radarr queue...')
         for item in radarr_queue['records']:
@@ -96,7 +96,7 @@ async def remove_stalled_radarr_downloads():
 async def remove_stalled_lidarr_downloads():
     logging.info('Checking Lidarr queue...')
     lidarr_url = f'{LIDARR_API_URL}/queue'
-    lidarr_queue = await make_api_request(lidarr_url, LIDARR_API_KEY, {'page': '1', 'pageSize': count_records(LIDARR_API_URL,LIDARR_API_KEY)})
+    lidarr_queue = await make_api_request(lidarr_url, LIDARR_API_KEY, {'page': '1', 'pageSize': await count_records(LIDARR_API_URL,LIDARR_API_KEY)})
     if lidarr_queue is not None and 'records' in lidarr_queue:
         logging.info('Processing Lidarr queue...')
         for item in lidarr_queue['records']:
