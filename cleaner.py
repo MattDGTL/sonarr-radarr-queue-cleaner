@@ -55,47 +55,18 @@ async def make_api_delete(url, api_key, params=None):
         logging.error(f'Error parsing JSON response from {url}: {e}')
         return None
     
-# Function to remove stalled Sonarr downloads
-async def remove_stalled_sonarr_downloads():
-    logging.info('Checking Sonarr queue...')
-    sonarr_url = f'{SONARR_API_URL}/queue'
-    sonarr_queue = await make_api_request(sonarr_url, SONARR_API_KEY, {'page': '1', 'pageSize': await count_records(SONARR_API_URL,SONARR_API_KEY)})
-    if sonarr_queue is not None and 'records' in sonarr_queue:
-        logging.info('Processing Sonarr queue...')
-        for item in sonarr_queue['records']:
+async def remove_stalled_downloads(appName, apiURL, apiKey):
+    logging.info(f'Checking {appName} queue...')
+    url = f'{apiURL}/queue'
+    queue = await make_api_request(url, apiKey, {'page': '1', 'pageSize': await count_records(apiURL, apiKey)})
+    if queue is not None and 'records' in queue:
+        logging.info(f'Processing {appName} queue...')
+        for item in queue['records']:
             if shouldCleanItem(item):
-                logging.info(f'Removing stalled Sonarr download: {item["title"] if "title" in item else "Unknown"}')
-                await make_api_delete(f'{SONARR_API_URL}/queue/{item["id"]}', SONARR_API_KEY, {'removeFromClient': 'true', 'blocklist': 'true'})
+                logging.info(f'Removing stalled {appName} download: {item["title"] if "title" in item else "Unknown"}')
+                await make_api_delete(f'{apiURL}/queue/{item["id"]}', apiKey, {'removeFromClient': 'true', 'blocklist': 'true'})
     else:
-        logging.warning('Sonarr queue is None or missing "records" key')
-
-# Function to remove stalled Radarr downloads
-async def remove_stalled_radarr_downloads():
-    logging.info('Checking Radarr queue...')
-    radarr_url = f'{RADARR_API_URL}/queue'
-    radarr_queue = await make_api_request(radarr_url, RADARR_API_KEY, {'page': '1', 'pageSize': await count_records(RADARR_API_URL,RADARR_API_KEY)})
-    if radarr_queue is not None and 'records' in radarr_queue:
-        logging.info('Processing Radarr queue...')
-        for item in radarr_queue['records']:
-            if shouldCleanItem(item):
-                logging.info(f'Removing stalled Radarr download: {item["title"] if "title" in item else "Unknown"}')
-                await make_api_delete(f'{RADARR_API_URL}/queue/{item["id"]}', RADARR_API_KEY, {'removeFromClient': 'true', 'blocklist': 'true'})
-    else:
-        logging.warning('Radarr queue is None or missing "records" key')
-
-# Function to remove stalled Lidarr downloads
-async def remove_stalled_lidarr_downloads():
-    logging.info('Checking Lidarr queue...')
-    lidarr_url = f'{LIDARR_API_URL}/queue'
-    lidarr_queue = await make_api_request(lidarr_url, LIDARR_API_KEY, {'page': '1', 'pageSize': await count_records(LIDARR_API_URL,LIDARR_API_KEY)})
-    if lidarr_queue is not None and 'records' in lidarr_queue:
-        logging.info('Processing Lidarr queue...')
-        for item in lidarr_queue['records']:
-            if shouldCleanItem(item):
-                logging.info(f'Removing stalled Lidarr download: {item["title"] if "title" in item else "Unknown"}')
-                await make_api_delete(f'{LIDARR_API_URL}/queue/{item["id"]}', LIDARR_API_KEY, {'removeFromClient': 'true', 'blocklist': 'true'})
-    else:
-        logging.warning('Lidarr queue is None or missing "records" key')
+        logging.warning(f'{appName} queue is None or missing "records" key')
 
 def shouldCleanItem(item):
     if 'errorMessage' in item and item['errorMessage'] == 'The download is stalled with no connections':
@@ -117,17 +88,17 @@ async def main():
         logging.info('Running media-tools script')
 
         if SONARR_API_KEY:
-            await remove_stalled_sonarr_downloads()
+            await remove_stalled_downloads('Sonarr', SONARR_API_URL, SONARR_API_KEY)
         else:
             logging.warning('Sonarr API key is not set. Skipping Sonarr queue check.')
 
         if RADARR_API_KEY:
-            await remove_stalled_radarr_downloads()
+            await remove_stalled_downloads('Radarr', RADARR_API_URL, RADARR_API_KEY)
         else:
             logging.warning('Radarr API key is not set. Skipping Radarr queue check.')
 
         if LIDARR_API_KEY:            
-            await remove_stalled_lidarr_downloads()
+            await remove_stalled_downloads('Lidarr', LIDARR_API_URL, LIDARR_API_KEY)
         else:
             logging.warning('Lidarr API key is not set. Skipping Lidarr queue check.')
 
