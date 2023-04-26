@@ -24,7 +24,7 @@ LOG_LEVEL = (os.environ['LOG_LEVEL']).upper() if os.environ['LOG_LEVEL'] else 'W
 # Set up logging
 logging.basicConfig(
     format='%(asctime)s [%(levelname)s]: %(message)s', 
-    level=logging._nameToLevel(LOG_LEVEL), 
+    level=logging._nameToLevel[LOG_LEVEL], 
     handlers=[logging.StreamHandler()]
 )
 
