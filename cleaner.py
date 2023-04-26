@@ -64,13 +64,9 @@ async def remove_stalled_sonarr_downloads():
     if sonarr_queue is not None and 'records' in sonarr_queue:
         logging.info('Processing Sonarr queue...')
         for item in sonarr_queue['records']:
-            if 'title' in item and 'status' in item and 'trackedDownloadStatus' in item:
-                logging.info(f'Checking the status of {item["title"]}')
-                if item['status'] == 'warning' and item['errorMessage'] == 'The download is stalled with no connections':
-                    logging.info(f'Removing stalled Sonarr download: {item["title"]}')
-                    await make_api_delete(f'{SONARR_API_URL}/queue/{item["id"]}', SONARR_API_KEY, {'removeFromClient': 'true', 'blocklist': 'true'})
-            else:
-                logging.warning('Skipping item in Sonarr queue due to missing or invalid keys')
+            if shouldCleanItem(item):
+                logging.info(f'Removing stalled Sonarr download: {item["title"] if "title" in item else "Unknown"}')
+                await make_api_delete(f'{SONARR_API_URL}/queue/{item["id"]}', SONARR_API_KEY, {'removeFromClient': 'true', 'blocklist': 'true'})
     else:
         logging.warning('Sonarr queue is None or missing "records" key')
 
@@ -82,13 +78,9 @@ async def remove_stalled_radarr_downloads():
     if radarr_queue is not None and 'records' in radarr_queue:
         logging.info('Processing Radarr queue...')
         for item in radarr_queue['records']:
-            if 'title' in item and 'status' in item and 'trackedDownloadStatus' in item:
-                logging.info(f'Checking the status of {item["title"]}')
-                if item['status'] == 'warning' and item['errorMessage'] == 'The download is stalled with no connections':
-                    logging.info(f'Removing stalled Radarr download: {item["title"]}')
-                    await make_api_delete(f'{RADARR_API_URL}/queue/{item["id"]}', RADARR_API_KEY, {'removeFromClient': 'true', 'blocklist': 'true'})
-            else:
-                logging.warning('Skipping item in Radarr queue due to missing or invalid keys')
+            if shouldCleanItem(item):
+                logging.info(f'Removing stalled Radarr download: {item["title"] if "title" in item else "Unknown"}')
+                await make_api_delete(f'{RADARR_API_URL}/queue/{item["id"]}', RADARR_API_KEY, {'removeFromClient': 'true', 'blocklist': 'true'})
     else:
         logging.warning('Radarr queue is None or missing "records" key')
 
@@ -100,15 +92,14 @@ async def remove_stalled_lidarr_downloads():
     if lidarr_queue is not None and 'records' in lidarr_queue:
         logging.info('Processing Lidarr queue...')
         for item in lidarr_queue['records']:
-            if 'title' in item and 'status' in item and 'trackedDownloadStatus' in item:
-                logging.info(f'Checking the status of {item["title"]}')
-                if item['status'] == 'warning' and item['errorMessage'] == 'The download is stalled with no connections':
-                    logging.info(f'Removing stalled Lidarr download: {item["title"]}')
-                    await make_api_delete(f'{LIDARR_API_URL}/queue/{item["id"]}', LIDARR_API_KEY, {'removeFromClient': 'true', 'blocklist': 'true'})
-            else:
-                logging.warning('Skipping item in Lidarr queue due to missing or invalid keys')
+            if shouldCleanItem(item):
+                logging.info(f'Removing stalled Lidarr download: {item["title"] if "title" in item else "Unknown"}')
+                await make_api_delete(f'{LIDARR_API_URL}/queue/{item["id"]}', LIDARR_API_KEY, {'removeFromClient': 'true', 'blocklist': 'true'})
     else:
         logging.warning('Lidarr queue is None or missing "records" key')
+
+def shouldCleanItem(item):
+    return (item['status'] == 'warning' or item['trackedDownloadStatus'] == 'warning') and item['errorMessage'] == 'The download is stalled with no connections'
 
 # Make a request to view and count items in queue and return the number.
 async def count_records(API_URL, API_Key):
@@ -137,7 +128,7 @@ async def main():
         else:
             logging.warning('Lidarr API URL or API key is not set. Skipping Lidarr queue check.')
 
-        logging.info("Finished running media-tools script. Sleeping for {API_TIMEOUT} seconds.")
+        logging.info("Finished processing queues. Sleeping for {API_TIMEOUT} seconds.")
         await asyncio.sleep(API_TIMEOUT)
 
 if __name__ == '__main__':
