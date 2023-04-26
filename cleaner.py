@@ -4,7 +4,6 @@
 import os
 import asyncio
 import logging
-import validators
 import requests
 from requests.exceptions import RequestException
 
@@ -72,7 +71,7 @@ async def remove_stalled_sonarr_downloads():
 
 # Function to remove stalled Radarr downloads
 async def remove_stalled_radarr_downloads():
-    logging.info('Checking radarr queue...')
+    logging.info('Checking Radarr queue...')
     radarr_url = f'{RADARR_API_URL}/queue'
     radarr_queue = await make_api_request(radarr_url, RADARR_API_KEY, {'page': '1', 'pageSize': await count_records(RADARR_API_URL,RADARR_API_KEY)})
     if radarr_queue is not None and 'records' in radarr_queue:
@@ -99,7 +98,11 @@ async def remove_stalled_lidarr_downloads():
         logging.warning('Lidarr queue is None or missing "records" key')
 
 def shouldCleanItem(item):
-    return (item['status'] == 'warning' or item['trackedDownloadStatus'] == 'warning') and item['errorMessage'] == 'The download is stalled with no connections'
+    if 'errorMessage' in item and item['errorMessage'] == 'The download is stalled with no connections':
+        if('status' in item):
+            return item['status'] == 'warning'
+        return item['trackedDownloadStatus'] == 'warning'
+    return False
 
 # Make a request to view and count items in queue and return the number.
 async def count_records(API_URL, API_Key):
@@ -113,22 +116,22 @@ async def main():
     while True:
         logging.info('Running media-tools script')
 
-        if SONARR_API_URL is not None and validators.url(SONARR_API_URL) and SONARR_API_KEY is not None:
+        if SONARR_API_KEY:
             await remove_stalled_sonarr_downloads()
         else:
-            logging.warning('Sonarr API URL or API key is not set. Skipping Sonarr queue check.')
+            logging.warning('Sonarr API key is not set. Skipping Sonarr queue check.')
 
-        if RADARR_API_URL is not None and validators.url(RADARR_API_URL) and RADARR_API_KEY is not None:
+        if RADARR_API_KEY:
             await remove_stalled_radarr_downloads()
         else:
-            logging.warning('Radarr API URL or API key is not set. Skipping Radarr queue check.')
+            logging.warning('Radarr API key is not set. Skipping Radarr queue check.')
 
-        if LIDARR_API_URL is not None and validators.url(LIDARR_API_URL) and LIDARR_API_KEY is not None:            
+        if LIDARR_API_KEY:            
             await remove_stalled_lidarr_downloads()
         else:
-            logging.warning('Lidarr API URL or API key is not set. Skipping Lidarr queue check.')
+            logging.warning('Lidarr API key is not set. Skipping Lidarr queue check.')
 
-        logging.info("Finished processing queues. Sleeping for {API_TIMEOUT} seconds.")
+        logging.info(f"Finished processing queues. Sleeping for {API_TIMEOUT} seconds.")
         await asyncio.sleep(API_TIMEOUT)
 
 if __name__ == '__main__':

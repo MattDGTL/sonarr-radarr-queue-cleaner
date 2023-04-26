@@ -1,4 +1,3 @@
 requests
 aiohttp
 asyncio
-validators
