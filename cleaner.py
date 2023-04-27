@@ -47,7 +47,6 @@ async def make_api_delete(url, api_key, params=None):
         headers = {'X-Api-Key': api_key}
         response = await asyncio.get_event_loop().run_in_executor(None, lambda: requests.delete(url, params=params, headers=headers))
         response.raise_for_status()
-        return response.json()
     except RequestException as e:
         logging.error(f'Error making API request to {url}: {e}')
         return None
@@ -55,35 +54,36 @@ async def make_api_delete(url, api_key, params=None):
         logging.error(f'Error parsing JSON response from {url}: {e}')
         return None
     
-async def remove_stalled_downloads(appName, apiURL, apiKey):
-    logging.info(f'Checking {appName} queue...')
-    url = f'{apiURL}/queue'
-    queue = await make_api_request(url, apiKey, {'page': '1', 'pageSize': await count_records(apiURL, apiKey)})
-    removedDownloads = []
+async def remove_stalled_downloads(app_name, api_url, api_key):
+    logging.debug(f'Checking {app_name} queue...')
+    url = f'{api_url}/queue'
+    queue = await make_api_request(url, api_key, {'page': '1', 'pageSize': await count_records(api_url, api_key)})
+    removed_downloads = []
     if queue is not None and 'records' in queue:
-        logging.info(f'Processing {appName} queue...')
+        logging.debug(f'Processing {app_name} queue...')
         for item in queue['records']:
-            logging.debug(f'Processing {appName} queue item: {item["title"] if "title" in item else "Unknown"}')
-            if item['downloadId'] in removedDownloads:
-                logging.debug(f'Skipping {appName} queue item: {item["title"] if "title" in item else "Unknown"} because it was already removed')
-            elif shouldCleanItem(item, appName):
-                removedDownloads.append(item['downloadId'])
-                await make_api_delete(f'{apiURL}/queue/{item["id"]}', apiKey, {'removeFromClient': 'true', 'blocklist': 'true'})
+            logging.debug(f'Processing {app_name} queue item: {item["title"] if "title" in item else "Unknown"}')
+            if 'downloadId' in item and item['downloadId'] in removed_downloads:
+                logging.debug(f'Skipping {app_name} queue item: {item["title"] if "title" in item else "Unknown"} because it was already removed')
+            elif should_clean_item(item, app_name):
+                if('downloadId' in item):
+                    removed_downloads.append(item['downloadId'])
+                await make_api_delete(f'{api_url}/queue/{item["id"]}', api_key, {'removeFromClient': 'true', 'blocklist': 'true'})
     else:
-        logging.warning(f'{appName} queue is None or missing "records" key')
+        logging.warning(f'{app_name} queue is None or missing "records" key')
 
-def shouldCleanItem(item, appName):
+def should_clean_item(item, app_name):
     # If the download is stalled with no connections
     if 'errorMessage' in item and item['errorMessage'] == 'The download is stalled with no connections':
         if 'status' in item and item['status'] == 'warning' or item['trackedDownloadStatus'] == 'warning':
-            logging.info(f'Removing stalled {appName} download: {item["title"] if "title" in item else "Unknown"}')
+            logging.info(f'Removing stalled {app_name} download: {item["title"] if "title" in item else "Unknown"}')
             return True
         
     # If the timeleft is greater than 1 day
     if 'trackedDownloadState' in item and item['trackedDownloadState'] == 'downloading' and 'timeleft' in item:
         timings = item['timeleft'].replace('.', ':').split(':')
         if len(timings) > 3:
-            logging.info(f'Removing slow {appName} download: {item["title"] if "title" in item else "Unknown"}')
+            logging.info(f'Removing slow {app_name} download: {item["title"] if "title" in item else "Unknown"}')
             return True
         
     return False
@@ -97,25 +97,28 @@ async def count_records(API_URL, API_Key):
 
 # Main function
 async def main():
-    while True:
-        logging.info('Running media-tools script')
+     if not SONARR_API_KEY:
+        logging.warning('Sonarr API key is not set. Skipping Sonarr queue check.')
+
+     if not RADARR_API_KEY:
+        logging.warning('Radarr API key is not set. Skipping Radarr queue check.')
+
+     if not LIDARR_API_KEY:            
+        logging.warning('Lidarr API key is not set. Skipping Lidarr queue check.')
+            
+     while True:
+        logging.debug('Running media-tools script')
 
         if SONARR_API_KEY:
             await remove_stalled_downloads('Sonarr', SONARR_API_URL, SONARR_API_KEY)
-        else:
-            logging.warning('Sonarr API key is not set. Skipping Sonarr queue check.')
 
         if RADARR_API_KEY:
             await remove_stalled_downloads('Radarr', RADARR_API_URL, RADARR_API_KEY)
-        else:
-            logging.warning('Radarr API key is not set. Skipping Radarr queue check.')
 
         if LIDARR_API_KEY:            
             await remove_stalled_downloads('Lidarr', LIDARR_API_URL, LIDARR_API_KEY)
-        else:
-            logging.warning('Lidarr API key is not set. Skipping Lidarr queue check.')
 
-        logging.info(f"Finished processing queues. Sleeping for {API_TIMEOUT} seconds.")
+        logging.debug(f"Finished processing queues. Sleeping for {API_TIMEOUT} seconds.")
         await asyncio.sleep(API_TIMEOUT)
 
 if __name__ == '__main__':
