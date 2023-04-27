@@ -18,7 +18,7 @@ LIDARR_API_KEY = (os.environ['LIDARR_API_KEY'])
 # Timeout for API requests in seconds
 API_TIMEOUT = int(os.environ['API_TIMEOUT'])
 
-LOG_LEVEL = (os.environ['LOG_LEVEL']).upper() if os.environ['LOG_LEVEL'] else 'WARN'
+LOG_LEVEL = (os.environ['LOG_LEVEL']).upper() if os.environ['LOG_LEVEL'] else 'INFO'
 
 # Set up logging
 logging.basicConfig(
