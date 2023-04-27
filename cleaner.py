@@ -73,6 +73,11 @@ async def remove_stalled_downloads(app_name, api_url, api_key):
         logging.warning(f'{app_name} queue is None or missing "records" key')
 
 def should_clean_item(item, app_name):
+    # If the download is usenet we don't want to clean it
+    if 'protocol' in item and item['protocol'] == 'usenet':
+        logging.debug(f'Skipping usenet {app_name} queue item: {item["title"] if "title" in item else "Unknown"}')
+        return False
+    
     # If the download is stalled with no connections
     if 'errorMessage' in item and item['errorMessage'] == 'The download is stalled with no connections':
         if 'status' in item and item['status'] == 'warning' or item['trackedDownloadStatus'] == 'warning':
@@ -98,23 +103,19 @@ async def count_records(API_URL, API_Key):
 # Main function
 async def main():
      if not SONARR_API_KEY:
-        logging.warning('Sonarr API key is not set. Skipping Sonarr queue check.')
-
+        logging.warning('Sonarr API key is not set. Skipping Sonarr queue checks.')
      if not RADARR_API_KEY:
-        logging.warning('Radarr API key is not set. Skipping Radarr queue check.')
-
+        logging.warning('Radarr API key is not set. Skipping Radarr queue checks.')
      if not LIDARR_API_KEY:            
-        logging.warning('Lidarr API key is not set. Skipping Lidarr queue check.')
+        logging.warning('Lidarr API key is not set. Skipping Lidarr queue checks.')
             
      while True:
         logging.debug('Running media-tools script')
 
         if SONARR_API_KEY:
             await remove_stalled_downloads('Sonarr', SONARR_API_URL, SONARR_API_KEY)
-
         if RADARR_API_KEY:
             await remove_stalled_downloads('Radarr', RADARR_API_URL, RADARR_API_KEY)
-
         if LIDARR_API_KEY:            
             await remove_stalled_downloads('Lidarr', LIDARR_API_URL, LIDARR_API_KEY)
 
