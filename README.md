@@ -5,7 +5,7 @@ Couldn't find a python script to do this job so I figured why not give it a try.
 
 Details:
 
-This script checks every 10 minutes (configurable) Sonarr's, Radarr's & Lidarrs queue json information for downloads that has an `errorMessage` that states `The download is stalled with no connections` or if the download speed is less than the `DOWNLOAD_SPEED_CUTOFF` env var for each item in the queue and removes it, informs download client to delete files and sends the release to blocklist to prevent it from re-downloading.
+This script checks every 10 minutes (configurable in seconds) Sonarr's, Radarr's & Lidarrs queue json information for downloads that has an `errorMessage` that states `The download is stalled with no connections` or if the download speed is less than the `DOWNLOAD_SPEED_CUTOFF` (kb/s) env var for each item in the queue and removes it, informs download client to delete files and sends the release to blocklist to prevent it from re-downloading.
 
 The script uses asyncio to allow each call to wait for a response before proceeding.
 Logging defaults to the `INFO` level, but you can configure this to be e.g. `DEBUG` to get more information.
