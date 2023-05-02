@@ -2,4 +2,3 @@ requests
 aiohttp
 asyncio
 datetime
-dateutil

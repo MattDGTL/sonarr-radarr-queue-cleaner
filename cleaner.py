@@ -6,8 +6,7 @@ import asyncio
 import logging
 import requests
 from requests.exceptions import RequestException
-from datetime import datetime
-from dateutil import parser
+from datetime import datetime, timezone
 
 SONARR_API_URL = (os.environ['SONARR_URL']) + "/api/v3"
 RADARR_API_URL = (os.environ['RADARR_URL']) + "/api/v3"
@@ -95,15 +94,13 @@ def should_clean_item(item, app_name):
 
     # If DOWNLOAD_SPEED_CUTOFF is set & the download is slower than this value
     if DOWNLOAD_SPEED_CUTOFF and 'trackedDownloadState' in item and item['trackedDownloadState'] == 'downloading' and 'estimatedCompletionTime' in item and 'sizeleft' in item:
-        estimated_time_remaining = parser.parse(
-            item['estimatedCompletionTime'])
-        now = datetime.now()
-        time_remaining_s = (estimated_time_remaining -
-                            now).total_seconds().__abs__()
+        estimated_time_remaining = datetime.strptime(item['estimatedCompletionTime'], "%Y-%m-%dT%H:%M:%S.%f%z")
+        now = datetime.now(timezone.utc)
+        time_remaining_s = (estimated_time_remaining - now).total_seconds().__abs__()
         size_left_kb = item['sizeleft'] * 1024
         download_speed_kbs = size_left_kb / time_remaining_s
 
-        if download_speed_kbs < DOWNLOAD_SPEED_CUTOFF:
+        if download_speed_kbs < float(DOWNLOAD_SPEED_CUTOFF):
             logging.info(
                 f'Removing slow {app_name} download: {item["title"] if "title" in item else "Unknown"}')
             return True
