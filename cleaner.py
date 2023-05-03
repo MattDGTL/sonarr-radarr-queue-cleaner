@@ -97,7 +97,7 @@ def should_clean_item(item, app_name):
         estimated_time_remaining = datetime.strptime(item['estimatedCompletionTime'], "%Y-%m-%dT%H:%M:%S.%f%z")
         now = datetime.now(timezone.utc)
         time_remaining_s = (estimated_time_remaining - now).total_seconds().__abs__()
-        size_left_kb = item['sizeleft'] * 1024
+        size_left_kb = item['sizeleft'] / 1024
         download_speed_kbs = size_left_kb / time_remaining_s
 
         if download_speed_kbs < float(DOWNLOAD_SPEED_CUTOFF):
