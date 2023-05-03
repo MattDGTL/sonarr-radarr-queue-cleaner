@@ -102,7 +102,7 @@ def should_clean_item(item, app_name):
 
         if download_speed_kbs < float(DOWNLOAD_SPEED_CUTOFF):
             logging.info(
-                f'Removing slow {app_name} download ({download_speed_kbs}kb/s): {item["title"] if "title" in item else "Unknown"}')
+                f'Removing slow {app_name} download ({"{:.2f}".format(download_speed_kbs)}kb/s): {item["title"] if "title" in item else "Unknown"}')
             return True
 
     return False
