@@ -2,3 +2,4 @@ requests
 aiohttp
 asyncio
 datetime
+python-dateutil
