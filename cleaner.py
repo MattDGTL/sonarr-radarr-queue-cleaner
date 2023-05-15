@@ -199,6 +199,11 @@ async def qbittorrent_remove_stalled_downloads(torrents, category, api_url, api_
                 logging.info(
                     f'Removing slow {category} download ({"{:.2f}".format(download_speed_kbs)}kb/s): {torrent["name"]}'
                 )
+            elif torrent["state"] == "downloading" and torrent["num_complete"] == 0:
+                names_to_remove.append(torrent["name"])
+                logging.info(
+                    f'Removing seedless {category} download: {torrent["name"]}'
+                )
 
     if names_to_remove:
         queue = await make_request(
