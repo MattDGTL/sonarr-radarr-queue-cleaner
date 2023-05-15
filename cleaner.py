@@ -65,8 +65,12 @@ async def make_request(
             lambda: request,
         )
         response.raise_for_status()
+
+        if request_method != "get":
+            return None
         if response.status_code == 204:
             return None
+
         return response.json()
     except RequestException as e:
         logging.error(f"Error making API request to {url}: {e}")
@@ -168,42 +172,60 @@ async def login_to_qbittorrent(session):
     )
 
 
+async def logout_of_qbittorrent(session):
+    await make_request(
+        url=QBITTORRENT_API_URL + "/auth/logout",
+        session=session,
+        request_method="post",
+    )
+
+
 async def qbittorrent_remove_stalled_downloads(torrents, category, api_url, api_key):
     names_to_remove = []
     for torrent in torrents:
-        download_speed_kbs = torrent["dlspeed"] / 1024
-        if (
-            torrent["state"] == "stalledDL"
-            or torrent["state"] == "metaDL"
-            or (
-                torrent["state"] == "downloading"
-                and download_speed_kbs < float(DOWNLOAD_SPEED_CUTOFF)
-            )
-        ):
-            if torrent["category"] == category:
+        if torrent["category"] == category:
+            download_speed_kbs = torrent["dlspeed"] / 1024
+            logging.debug(f'Processing {category} queue item: {torrent["name"]}')
+            if torrent["state"] == "stalledDL":
                 names_to_remove.append(torrent["name"])
-
-    queue = await make_request(
-        url=f"{api_url}/queue",
-        api_key=api_key,
-        params={
-            "page": "1",
-            "pageSize": await count_records(SONARR_API_URL, SONARR_API_KEY),
-        },
-    )
-
-    if queue is not None and "records" in queue:
-        for item in queue["records"]:
-            if "title" in item and item["title"] in names_to_remove:
+                logging.info(f'Removing stalled {category} download: {torrent["name"]}')
+            elif torrent["state"] == "metaDL":
+                names_to_remove.append(torrent["name"])
+                logging.info(f'Removing stuck {category} download: {torrent["name"]}')
+            elif torrent["state"] == "downloading" and download_speed_kbs < float(
+                DOWNLOAD_SPEED_CUTOFF
+            ):
+                names_to_remove.append(torrent["name"])
                 logging.info(
-                    f'Removing stalled/slow {category} download: {item["title"] if "title" in item else "Unknown"}'
+                    f'Removing slow {category} download ({"{:.2f}".format(download_speed_kbs)}kb/s): {torrent["name"]}'
                 )
-                await make_request(
-                    url=f'{api_url}/queue/{item["id"]}',
-                    api_key=api_key,
-                    params={"removeFromClient": "true", "blocklist": "true"},
-                    request_method="delete",
-                )
+
+    if names_to_remove:
+        queue = await make_request(
+            url=f"{api_url}/queue",
+            api_key=api_key,
+            params={
+                "page": "1",
+                "pageSize": await count_records(SONARR_API_URL, SONARR_API_KEY),
+            },
+        )
+
+        if queue is not None and "records" in queue:
+            for name in names_to_remove:
+                for item in queue["records"]:
+                    if "title" in item and (
+                        name in item["title"] or item["title"] in name
+                    ):
+                        await make_request(
+                            url=f'{api_url}/queue/{item["id"]}',
+                            api_key=api_key,
+                            params={
+                                "removeFromClient": "true",
+                                "blocklist": "true",
+                            },
+                            request_method="delete",
+                        )
+                        break
 
 
 async def main():
@@ -240,6 +262,8 @@ async def main():
                 await qbittorrent_remove_stalled_downloads(
                     torrents, "lidarr", RADARR_API_URL, LIDARR_API_KEY
                 )
+
+            await logout_of_qbittorrent(session)
         else:
             if SONARR_API_KEY:
                 await remove_stalled_downloads("Sonarr", SONARR_API_URL, SONARR_API_KEY)
