@@ -192,8 +192,10 @@ async def qbittorrent_remove_stalled_downloads(torrents, category, api_url, api_
             elif torrent["state"] == "metaDL":
                 names_to_remove.append(torrent["name"])
                 logging.info(f'Removing stuck {category} download: {torrent["name"]}')
-            elif torrent["state"] == "downloading" and download_speed_kbs < float(
+            elif (
                 DOWNLOAD_SPEED_CUTOFF
+                and torrent["state"] == "downloading"
+                and download_speed_kbs < float(DOWNLOAD_SPEED_CUTOFF)
             ):
                 names_to_remove.append(torrent["name"])
                 logging.info(
