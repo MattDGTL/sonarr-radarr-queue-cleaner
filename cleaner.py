@@ -103,7 +103,8 @@ async def main():
         logging.info('Running media-tools script')
         await remove_stalled_sonarr_downloads()
         await remove_stalled_radarr_downloads()
-        logging.info('Finished running media-tools script. Sleeping for Sleeping for {} seconds.'.format(API_TIMEOUT))
+        minutes = API_TIMEOUT // 60
+        logging.info('Finished running media-tools script. Sleeping for {} minutes.'.format(minutes))
         await asyncio.sleep(API_TIMEOUT)
 
 if __name__ == '__main__':
