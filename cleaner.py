@@ -49,9 +49,9 @@ async def make_api_request(url, api_key, params=None):
         return None
 
 # Make a request to view and count items in queue and return the number.
-async def count_records(API_URL, API_Key, GetParams=''):
-    the_url = f'{API_URL}/queue?' + GetParams
-    the_queue = await make_api_request(the_url, API_Key)
+async def count_records(API_URL, API_Key, params=None):
+    the_url = f'{API_URL}/queue'
+    the_queue = await make_api_request(the_url, API_Key, params)
     if the_queue is not None and 'records' in the_queue:
         return the_queue['totalRecords']
 
