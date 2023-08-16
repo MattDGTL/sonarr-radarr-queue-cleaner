@@ -6,7 +6,6 @@ import asyncio
 import logging
 import requests
 from requests.exceptions import RequestException
-import json
 
 # Set up logging
 logging.basicConfig(
@@ -25,6 +24,12 @@ RADARR_API_KEY = (os.environ['RADARR_API_KEY'])
 
 # Timeout for API requests in seconds
 API_TIMEOUT = int(os.environ['API_TIMEOUT']) # 10 minutes
+
+# Number of strikes before a link is removed
+STRIKE_COUNT = (os.environ['STRIKE_COUNT'])
+
+# Dictionary to keep track of stalled downloads and their detection count
+stalled_downloads = {}
 
 # Function to make API requests with error handling
 async def make_api_request(url, api_key, params=None):
@@ -65,12 +70,16 @@ async def remove_stalled_sonarr_downloads():
             if 'title' in item and 'status' in item and 'trackedDownloadStatus' in item:
                 logging.info(f'Checking the status of {item["title"]}')
                 if item['status'] == 'warning' and item['errorMessage'] == 'The download is stalled with no connections':
-                    logging.info(f'Removing stalled Sonarr download: {item["title"]}')
-                    await make_api_delete(f'{SONARR_API_URL}/queue/{item["id"]}', SONARR_API_KEY, {'removeFromClient': 'true', 'blocklist': 'true'})
-            else:
-                logging.warning('Skipping item in Sonarr queue due to missing or invalid keys')
-    else:
-        logging.warning('Sonarr queue is None or missing "records" key')
+                    if item['id'] in stalled_downloads:
+                        stalled_downloads[item['id']] += 1
+                        if stalled_downloads[item['id']] == (STRIKE_COUNT):
+                            logging.info(f'Removing stalled Sonarr download: {item["title"]}')
+                            await make_api_delete(f'{SONARR_API_URL}/queue/{item["id"]}', SONARR_API_KEY, {'removeFromClient': 'true', 'blocklist': 'true'})
+                            stalled_downloads.pop(item['id'])
+                    else:
+                        stalled_downloads[item['id']] = 1
+                else:
+                    stalled_downloads.pop(item['id'], None)  # Remove from dictionary if not stalled
 
 # Function to remove stalled Radarr downloads
 async def remove_stalled_radarr_downloads():
@@ -83,12 +92,16 @@ async def remove_stalled_radarr_downloads():
             if 'title' in item and 'status' in item and 'trackedDownloadStatus' in item:
                 logging.info(f'Checking the status of {item["title"]}')
                 if item['status'] == 'warning' and item['errorMessage'] == 'The download is stalled with no connections':
-                    logging.info(f'Removing stalled Radarr download: {item["title"]}')
-                    await make_api_delete(f'{RADARR_API_URL}/queue/{item["id"]}', RADARR_API_KEY, {'removeFromClient': 'true', 'blocklist': 'true'})
-            else:
-                logging.warning('Skipping item in Radarr queue due to missing or invalid keys')
-    else:
-        logging.warning('Radarr queue is None or missing "records" key')
+                    if item['id'] in stalled_downloads:
+                        stalled_downloads[item['id']] += 1
+                        if stalled_downloads[item['id']] == (STRIKE_COUNT):
+                            logging.info(f'Removing stalled Radarr download: {item["title"]}')
+                            await make_api_delete(f'{RADARR_API_URL}/queue/{item["id"]}', RADARR_API_KEY, {'removeFromClient': 'true', 'blocklist': 'true'})
+                            stalled_downloads.pop(item['id'])
+                    else:
+                        stalled_downloads[item['id']] = 1
+                else:
+                    stalled_downloads.pop(item['id'], None)  # Remove from dictionary if not stalled
 
 # Make a request to view and count items in queue and return the number.
 async def count_records(API_URL, API_Key):
