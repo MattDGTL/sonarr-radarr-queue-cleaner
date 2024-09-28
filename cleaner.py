@@ -45,13 +45,24 @@ async def make_api_delete(url, api_key, params=None):
     try:
         headers = {'X-Api-Key': api_key}
         response = await asyncio.get_event_loop().run_in_executor(None, lambda: requests.delete(url, params=params, headers=headers))
+        
+        # Check for a successful response code (200 OK)
+        if response.status_code == 200:
+            logging.info(f'Successfully deleted item from queue at {url}')
+            return {}  # Return an empty dictionary to indicate success
+        
+        # If the response code is not 200, raise an HTTP error with the response
         response.raise_for_status()
         return response.json()
+    
     except RequestException as e:
         logging.error(f'Error making API request to {url}: {e}')
         return None
+    
     except ValueError as e:
-        logging.error(f'Error parsing JSON response from {url}: {e}')
+        # If JSON parsing fails, log the error only if the response code is not 200
+        if response.status_code != 200:
+            logging.error(f'Error parsing JSON response from {url}: {e}')
         return None
     
 # Function to remove stalled Sonarr downloads
