@@ -11,9 +11,7 @@ You can how often it checks via `API_TIMEOUT=`. It's currently set to 600 second
 The script uses asyncio to allow each call to wait for a response before proceeding.
 Logs everything and streams the info. You can replace with good ol' print if you like just remove the `# Set up logging` section and change all `logging.error` & `logging.info` to `print`.
 
-This script was created to work in a docker container so the included files are necessary.
-to use in a docker container, copy folder to the machine hosting your docker, `CD` into the directory where the files are located and enter these following 2 commands:
+deploy via docker run:
 
-1# `docker build -t media-cleaner .`
+`docker run -d --name media-cleaner --image kjames2001/sonarr-radarr-queue-cleaner -e SONARR_API_KEY='123456' -e RADARR_API_KEY='123456' -e SONARR_URL='http://sonarr:8989' -e RADARR_URL='http://radarr:7878' -e API_TIMEOUT='600' media-cleaner STRIKE_COUNT=3`
 
-2#. `docker run -d --name media-cleaner -e SONARR_API_KEY='123456' -e RADARR_API_KEY='123456' -e SONARR_URL='http://sonarr:8989' -e RADARR_URL='http://radarr:7878' -e API_TIMEOUT='600' media-cleaner`
